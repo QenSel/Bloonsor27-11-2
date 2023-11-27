@@ -1,0 +1,65 @@
+﻿@page "/"
+@using Bloonsor.BlazorApp.Components
+@using Bloonsor.BlazorApp.Models
+@using System.Timers
+@implements IDisposable
+
+<h1>@AmountPopped balloons popped!</h1>
+
+@foreach (var balloon in Balloons)
+{
+    <Balloon Model="balloon" OnPopped="BalloonPopped"></Balloon>
+}
+
+@code
+{
+    private Timer Timer { get; set; } = new Timer(500);
+    private int AmountPopped { get; set; }
+    private Random Random { get; set; } = new Random();
+    private IList<BalloonViewModel> Balloons { get; set; } = new List<BalloonViewModel>();
+
+    protected override Task OnInitializedAsync()
+    {
+        Timer.Elapsed += TimerOnElapsed;
+        Timer.Start();
+
+        return base.OnInitializedAsync();
+    }
+
+    private void TimerOnElapsed(object? sender, ElapsedEventArgs e)
+    {
+        var balloon = CreateBalloon();
+        Balloons.Add(balloon);
+        StateHasChanged();
+
+        var interval = Random.Next(500, 2000);
+        Timer.Interval = interval;
+    }
+
+    private BalloonViewModel CreateBalloon()
+    {
+        var top = Random.Next(0, 500);
+        var left = Random.Next(0, 1000);
+
+        var imageIndex = Random.Next(1, 4);
+
+        return new BalloonViewModel
+        {
+            PositionLeft = left, 
+            PositionTop = top,
+            ImageUrl = $"/images/balloon{imageIndex}.png"
+        };
+    }
+
+    private void BalloonPopped(BalloonViewModel balloon)
+    {
+        AmountPopped += 1;
+        Balloons.Remove(balloon);
+    }
+
+    public void Dispose()
+    {
+        Timer.Elapsed -= TimerOnElapsed;
+        Timer.Dispose();
+    }
+}

@@ -1,0 +1,47 @@
+﻿@using System.Timers
+@using Bloonsor.BlazorApp.Models
+
+@implements IDisposable
+
+@if (Model is not null)
+{
+    <img width="162"
+            style="position:absolute;top:@(Model.PositionTop)px;left:@(Model.PositionLeft)px;" 
+         src="@Model.ImageUrl" 
+         @onclick="BalloonClicked"/>
+}
+
+@code {
+
+    private Timer Timer { get; set; } = new Timer(200);
+
+    [Parameter]
+    public BalloonViewModel? Model { get; set; }
+
+    [Parameter]
+    public EventCallback<BalloonViewModel> OnPopped { get; set; }
+
+    private void BalloonClicked()
+    {
+       if (Model is not null)
+        {
+            Model.ImageUrl = "/images/popped.png";
+        }
+
+        Timer.Elapsed += BalloonPopped;
+        Timer.Start();
+    }
+
+    private void BalloonPopped(object? sender, ElapsedEventArgs args)
+    {
+        Timer.Elapsed -= BalloonPopped;
+        OnPopped.InvokeAsync(Model);
+        Timer.Stop();
+    }
+
+    public void Dispose()
+    {
+        Timer.Dispose();
+    }
+
+}
